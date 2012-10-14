@@ -1,25 +1,33 @@
-//Sample using LiquidCrystal library
 #include <LiquidCrystal.h>
 
 // select the pins used on the LCD panel
+// LiquidCrystal(rs, enable, d4, d5, d6, d7) 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
  
 // define some values used by the panel and buttons
 int lcd_key     = 0;
 int adc_key_in  = 0;
-#define PLAYER_CHAR  0
-#define COIN_CHAR    1
-#define MONSTER_RIGHT_CHAR 2
-#define MONSTER_LEFT_CHAR 3
-#define MONSTER_CLOSED_CHAR 4
+
+// Buttons
 #define btnRIGHT  0
 #define btnUP     1
 #define btnDOWN   2
 #define btnLEFT   3
 #define btnSELECT 4
 #define btnNONE   5
+
+// Custom chars
+#define PLAYER_CHAR  0
+#define COIN_CHAR    1
+#define MONSTER_RIGHT_CHAR 2
+#define MONSTER_LEFT_CHAR 3
+#define MONSTER_CLOSED_CHAR 4
+
+// Possible directions
 #define DIR_RIGHT 0
 #define DIR_LEFT  1
+
+// Other useful variables
 String whiteLine = "                ";
 int playerPos[2] = {0,0}; // {x,y}
 int coinPos[2] = {0,0}; // {x,y}
@@ -27,29 +35,36 @@ int monsters[2][3] = {{0,0,DIR_RIGHT},{15,1,DIR_LEFT}}; // {x,y,dir}
 int score = 0;
 boolean walls = true; // used if you want an infinite field (loop from one side to the other)
 long loopNumber=0;
- 
+boolean playerOnMonster = false; // this is used to know if the player has already lost a point because he got eaten or not (3 loops for one position for monsters)
+
+// returns true only if the player is on the coin
 boolean playerIsOnCoin() {
  return playerPos[0] == coinPos[0] && playerPos[1] == coinPos[1]; 
 }
 
+// returns true only if the player is on the same spot as a monster
 boolean playerMeetMonster() {
   return (playerPos[0] == monsters[0][0] && playerPos[1] == monsters[0][1]) || (playerPos[0] == monsters[1][0] && playerPos[1] == monsters[1][1]);
 }
-// process the player's move
+
+// process the player's move (mainly scoring)
 void processPos() {
   if (playerIsOnCoin()) {
     score++;
     generateNewCoin();
   }
-  if (playerMeetMonster()) {
+  if (playerMeetMonster() && !playerOnMonster) {
     score--;
+    playerOnMonster = true;
+  }
+  if(!playerMeetMonster()) {
+    playerOnMonster = false;
   }
 }
 
+// updates the monsters position and look
 void moveMonsters() {
   if(loopNumber % 3 == 0) {
-    Serial.print("loop is ");
-    Serial.println(loopNumber);
     for(int i = 0; i<2; i++) {
       int* monsterPos = monsters[i];
       if(monsterPos[0] == 15) {
@@ -67,6 +82,7 @@ void moveMonsters() {
   }
 }
 
+// Change the position of the coin to a new random one
 void generateNewCoin() {
   while(playerIsOnCoin()) {
     coinPos[0] = random(0,16);
@@ -95,6 +111,7 @@ void drawField() {
 }
 
 // read the buttons
+// this method was copied from http://www.dfrobot.com/wiki/index.php?title=Arduino_LCD_KeyPad_Shield_(SKU:_DFR0009)#Example_use_of_LiquidCrystal_library
 int read_LCD_buttons()
 {
  adc_key_in = analogRead(0);      // read the value from the sensor 
@@ -109,6 +126,7 @@ int read_LCD_buttons()
  return btnNONE;  // when all others fail, return this...
 }
 
+// a loop to display characters on the screen. can be used for animation
 void niceDisplayLoop1(char c1,char c2,boolean indirect) {
     int val;
   for( int i=0; i<8; i++) {
@@ -130,6 +148,7 @@ void niceDisplayLoop1(char c1,char c2,boolean indirect) {
   }
 }
 
+// helper to show 2 lines in a nice looking animation
 void crossAppear(String line1, String line2,boolean stay) {
   int max = stay? 16 : 32;
   char charToPrint;
@@ -142,7 +161,7 @@ void crossAppear(String line1, String line2,boolean stay) {
       charToPrint = i-k < line2.length() ? line2[i-k] : ' ';
       lcd.print(charToPrint);
     }
-      delay(80);
+    delay(80);
   }
   if(!stay) {
     delay(50);
@@ -157,11 +176,12 @@ void crossAppear(String line1, String line2,boolean stay) {
         charToPrint = i-k+16 < line2.length() ? line2[i-k+16]:' ';
         lcd.print(charToPrint);
       }
-        delay(80);
+      delay(80);
     }
   }
 }
 
+// helper to display 2 String
 void showLines(String line1, String line2) {
   lcd.setCursor(0,0);
   lcd.print(line1);
@@ -169,6 +189,7 @@ void showLines(String line1, String line2) {
   lcd.print(line2);
 }
 
+// helper to have some text displayed and blinking
 void blinkDisplay(String line1, String line2, int times, int wait) {
   for(int i=0;i<times;i++) {
     showLines(line1,line2);
@@ -179,162 +200,166 @@ void blinkDisplay(String line1, String line2, int times, int wait) {
   showLines(line1,line2);
 }
 
+// tihs function is called in Setup. it will create custom chars
 void initLcd() { 
   byte player[8] = {
-  B01110,
-  B00100,
-  B01110,
-  B10101,
-  B00100,
-  B01010,
-  B01010,
-};
+    B01110,
+    B00100,
+    B01110,
+    B10101,
+    B00100,
+    B01010,
+    B01010,
+  };
   lcd.createChar(PLAYER_CHAR,player);
   byte monster_left[8] = {
-  B01100,
-  B01110,
-  B00111,
-  B00011,
-  B00111,
-  B01110,
-  B01100,
-};
+    B01100,
+    B01110,
+    B00111,
+    B00011,
+    B00111,
+    B01110,
+    B01100,
+  };
   lcd.createChar(MONSTER_LEFT_CHAR,monster_left);
   byte monster_right[8] = {
-  B00110,
-  B01110,
-  B11100,
-  B11000,
-  B11100,
-  B01110,
-  B00110,
-};
+    B00110,
+    B01110,
+    B11100,
+    B11000,
+    B11100,
+    B01110,
+    B00110,
+  };
   lcd.createChar(MONSTER_RIGHT_CHAR,monster_right);
   byte monster_closed[8] = {
-  B00000,
-  B00000,
-  B11111,
-  B11111,
-  B11111,
-  B00000,
-  B00000,
-};
+    B00000,
+    B00000,
+    B11111,
+    B11111,
+    B11111,
+    B00000,
+    B00000,
+  };
   lcd.createChar(MONSTER_CLOSED_CHAR,monster_closed);
   byte coin[8] = {
-  B00100,
-  B01010,
-  B10001,
-  B10101,
-  B10001,
-  B01010,
-  B00100,
-};
+    B00100,
+    B01010,
+    B10001,
+    B10101,
+    B10001,
+    B01010,
+    B00100,
+  };
   lcd.createChar(COIN_CHAR,coin);
-   lcd.begin(16, 2);              // start the library
+  lcd.begin(16, 2);              // start the library
 }
 
+// sequence displayed at start (called in setup())
+void displayStartSequence() {
+  //niceDisplayLoop1(' ',' ',false);
+  //niceDisplayLoop1('*','-',true);
+  //niceDisplayLoop1('*','-',false);
+  crossAppear("  Catch coins   ","  oO0Oo..oO0Oo  ",false);
+  crossAppear("   but don't    ","   get caught   ",false);
+}
+ 
+// function to display scores. It will "pause" the game and show the player's score
+void showScores() {
+  crossAppear("  Your score is ",String(score),false);
+}
+ 
+// Keys processing. the hardware allows only one key press at a time
+void selectKeyPressed() {
+  showScores();
+}
+void leftKeyPressed() {
+  if(playerPos[0] == 0) {
+    playerPos[0] = walls ? 0 : 15;
+  } else {
+    playerPos[0] -= 1;
+  }
+}
+void rightKeyPressed() {
+  if(playerPos[0] == 15) {
+    playerPos[0] = walls ? 15 : 0;
+  } else {
+    playerPos[0] += 1;
+  }
+}
+void upKeyPressed() {
+  if(playerPos[1] == 0) {
+    playerPos[1] = walls ? 0 : 1;
+  } else {
+    playerPos[1] -= 1;
+  }
+}
+void downKeyPressed() {
+  if(playerPos[1] == 1) {
+    playerPos[1] = walls ? 1 : 0;
+  } else {
+    playerPos[1] = 1;
+  }
+}
+void noKeyPressed() {}
 
- void displayStartSequence() {
-   
-   //niceDisplayLoop1(' ',' ',false);
-   //niceDisplayLoop1('*','-',true);
-   //niceDisplayLoop1('*','-',false);
-   crossAppear("  Catch coins   ","  oO0Oo..oO0Oo  ",false);
-   crossAppear("   but don't    ","   get caught   ",false);
-
- }
- 
- void showScores() {
-   crossAppear("  Your score is ",String(score),false);
- }
- 
- void selectKeyPressed() {
-   showScores();
- }
- void leftKeyPressed() {
-   if(playerPos[0] == 0) {
-     playerPos[0] = walls ? 0 : 15;
-   } else {
-     playerPos[0] -= 1;
-   }
- processPos();
- }
- void rightKeyPressed() {
-   if(playerPos[0] == 15) {
-     playerPos[0] = walls ? 15 : 0;
-   } else {
-     playerPos[0] += 1;
-   }
- }
- void upKeyPressed() {
-   if(playerPos[1] == 0) {
-     playerPos[1] = walls ? 0 : 1;
-   } else {
-     playerPos[1] -= 1;
-   }
- }
- void downKeyPressed() {
-   if(playerPos[1] == 1) {
-     playerPos[1] = walls ? 1 : 0;
-   } else {
-     playerPos[1] = 1;
-   }
- }
- void noKeyPressed() {}
- 
+// setup 
 void setup()
 {
+  // defining the baud rate for debug
   Serial.begin(9600);
+  // seeding the random function (for coin position)
   randomSeed(analogRead(2));
   initLcd();
   displayStartSequence();
   generateNewCoin();
-drawField();
+  drawField();
 }
-  
+ 
+// main loop 
 void loop()
 {
   loopNumber++;
   long time = millis();
   moveMonsters();
  
- int lcd_key = read_LCD_buttons();
- switch (lcd_key)
- {
-   case btnRIGHT:
-     {
-     rightKeyPressed();
-     break;
-     }
-   case btnLEFT:
-     {
-     leftKeyPressed();
-     break;
-     }
-   case btnUP:
-     {
-     upKeyPressed();
-     break;
-     }
-   case btnDOWN:
-     {
-     downKeyPressed();
-     break;
-     }
-   case btnSELECT:
-     {
-     selectKeyPressed();
-     break;
-     }
-   case btnNONE:
-     {
-     noKeyPressed();
-     break;
-     }
- }
- processPos();
-     drawField();
- if(millis()-time < 100) {
-   delay(100-millis()+time);
- }
+  int lcd_key = read_LCD_buttons();
+  switch (lcd_key)
+  {
+    case btnRIGHT:
+    {
+      rightKeyPressed();
+      break;
+    }
+    case btnLEFT:
+    {
+      leftKeyPressed();
+      break;
+    }
+    case btnUP:
+    {
+      upKeyPressed();
+      break;
+    }
+    case btnDOWN:
+    {
+      downKeyPressed();
+      break;
+    }
+    case btnSELECT:
+    {
+      selectKeyPressed();
+      break;
+    }
+    case btnNONE:
+    {
+      noKeyPressed();
+      break;
+    }
+  }
+  processPos();
+  drawField();
+  if(millis()-time < 100) {
+    delay(100-millis()+time);
+  }
 }
