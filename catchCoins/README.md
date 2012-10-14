@@ -2,6 +2,7 @@ Catch Coins!
 ============
 
 > Catch coins, but don't get caught!
+> 
 > -- <cite>A great game's introductory text</cite>
 
 Aim
