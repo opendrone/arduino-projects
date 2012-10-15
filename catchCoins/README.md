@@ -24,10 +24,18 @@ Software
 
 * [LiquidCrystal](http://arduino.cc/en/Reference/LiquidCrystal) library
 
+How to use
+----------
+
+1. Connect the arduino to the LCD Board
+2. get the code in your sketchbook folder
+3. update the values to load the librarie with your pins
+
 Info
 ----
 
 You can move 3 times as fast as those scary monster, but don't forget that great power comes with great responsibility!
+Try pressing the right button from start to experiment it!
 
 The game speed increases with time and each time you catch a coin. Be fast to get the best score!
 
