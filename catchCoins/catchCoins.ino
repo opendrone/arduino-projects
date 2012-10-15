@@ -55,16 +55,6 @@ void processPos() {
     generateNewCoin();
   }
   if (playerMeetMonster()) {
-    Serial.print(playerPos[0]);
-    Serial.print(",");
-    Serial.println(playerPos[1]);
-    Serial.print(monsters[0][0]);
-    Serial.print(",");
-    Serial.print(monsters[0][0]);
-    Serial.print(" ");
-    Serial.print(monsters[0][0]);
-    Serial.print(",");
-    Serial.println(monsters[1][1]);
     endingSequence();
   }
 }
@@ -370,7 +360,8 @@ void loop()
   long time = millis()-lastGameEnd;
   loopNumber++;
   
-  loopDelay = 150L - 0.1 * loopNumber;
+  // formula that speeds up with time & each time you catch a coin
+  loopDelay = min(max(0,(110L - 0.1 * loopNumber + 130L - score)/2),150L);
   moveMonsters();
  
   int lcd_key = read_LCD_buttons();

@@ -27,6 +27,10 @@ Software
 Info
 ----
 
+You can move 3 times as fast as those scary monster, but don't forget that great power comes with great responsibility!
+
+The game speed increases with time and each time you catch a coin. Be fast to get the best score!
+
 Some blips are remaining, but it's for the fun! If you are precise enough, you can cross a monster without him seeing you!
 
 Possible Extensions
