@@ -29,13 +29,14 @@ int adc_key_in  = 0;
 
 // Other useful variables
 String whiteLine = "                ";
-int playerPos[2] = {0,0}; // {x,y}
-int coinPos[2] = {0,0}; // {x,y}
-int monsters[2][3] = {{15,0,DIR_RIGHT},{0,1,DIR_LEFT}}; // {x,y,dir}
-int score = 0;
-boolean walls = true; // used if you want an infinite field (loop from one side to the other)
-long loopNumber=0;
-boolean playerOnMonster = false; // this is used to know if the player has already lost a point because he got eaten or not (3 loops for one position for monsters)
+int playerPos[2]; // {x,y}
+int coinPos[2]; // {x,y}
+int monsters[2][3]; // {x,y,dir}
+int score;
+boolean walls; // used if you want an infinite field (loop from one side to the other)
+long loopNumber;
+long loopDelay;
+long lastGameEnd;
 
 // returns true only if the player is on the coin
 boolean playerIsOnCoin() {
@@ -53,12 +54,18 @@ void processPos() {
     score++;
     generateNewCoin();
   }
-  if (playerMeetMonster() && !playerOnMonster) {
-    score--;
-    playerOnMonster = true;
-  }
-  if(!playerMeetMonster()) {
-    playerOnMonster = false;
+  if (playerMeetMonster()) {
+    Serial.print(playerPos[0]);
+    Serial.print(",");
+    Serial.println(playerPos[1]);
+    Serial.print(monsters[0][0]);
+    Serial.print(",");
+    Serial.print(monsters[0][0]);
+    Serial.print(" ");
+    Serial.print(monsters[0][0]);
+    Serial.print(",");
+    Serial.println(monsters[1][1]);
+    endingSequence();
   }
 }
 
@@ -82,12 +89,10 @@ void moveMonsters() {
   }
 }
 
-// Change the position of the coin to a new random one
+// Change the position of the coin to a new random one. could be the same as the player. don't move and you get 2 points!
 void generateNewCoin() {
-  while(playerIsOnCoin()) {
     coinPos[0] = random(0,16);
     coinPos[1] = random(0,2);
-  }
 }
 
 
@@ -163,21 +168,24 @@ void crossAppear(String line1, String line2,boolean stay) {
     }
     delay(80);
   }
-  if(!stay) {
-    delay(50);
-    blinkDisplay(line1,line2,4,100);
-    delay(200);
-    for( int i=0; i<16; i++) {
-      for( int k=i; k<16; k++) {
-        lcd.setCursor(k,0);
-        charToPrint = k-i-1 < line1.length() ? line1[k-i-1]:' ';
-        lcd.print(charToPrint);
-        lcd.setCursor(15-k,1);
-        charToPrint = i-k+16 < line2.length() ? line2[i-k+16]:' ';
-        lcd.print(charToPrint);
-      }
-      delay(80);
+  delay(50);
+  blinkDisplay(line1,line2,4,100);
+  delay(200);
+  if(stay) {
+    while(read_LCD_buttons() != btnSELECT) {
+      delay(10);
     }
+  }
+  for( int i=0; i<16; i++) {
+    for( int k=i; k<16; k++) {
+      lcd.setCursor(k,0);
+      charToPrint = k-i-1 < line1.length() ? line1[k-i-1]:' ';
+      lcd.print(charToPrint);
+      lcd.setCursor(15-k,1);
+      charToPrint = i-k+16 < line2.length() ? line2[i-k+16]:' ';
+      lcd.print(charToPrint);
+    }
+    delay(80);
   }
 }
 
@@ -263,10 +271,48 @@ void displayStartSequence() {
   crossAppear("  Catch coins   ","  oO0Oo..oO0Oo  ",false);
   crossAppear("   but don't    ","   get caught   ",false);
 }
- 
+
+void endingSequence() {
+  displayDeath();
+  showScores();
+  displayEndSequence();
+  reset();
+  displayStartSequence();
+  drawField();
+  lastGameEnd = millis();
+}
+
+void displayDeath() {
+  showLines(" paf      boom  ",
+            "     pouf       ");
+  delay(500);
+}
+
+void displayEndSequence() {
+  crossAppear("You are dead    ","     told you...",false);
+}
+
 // function to display scores. It will "pause" the game and show the player's score
 void showScores() {
-  crossAppear("  Your score is ",String(score),false);
+  crossAppear("  Your score is ",String(score),true);
+}
+
+void reset() {
+  playerPos[0] = 0;
+  playerPos[1] = 0;
+  coinPos[0] = 0;
+  coinPos[1] = 0;
+  generateNewCoin();
+  monsters[0][0] = 15;
+  monsters[0][1] = 0;
+  monsters[0][2] = DIR_RIGHT;
+  monsters[1][0] = 0;
+  monsters[1][1] = 1;
+  monsters[1][2] = DIR_LEFT;
+  score = 0;
+  walls = true;
+  loopNumber = 0;
+  loopDelay = 200;
 }
  
 // Keys processing. the hardware allows only one key press at a time
@@ -310,17 +356,21 @@ void setup()
   Serial.begin(9600);
   // seeding the random function (for coin position)
   randomSeed(analogRead(2));
+  // set initial values
+  reset();
   initLcd();
   displayStartSequence();
-  generateNewCoin();
   drawField();
+  lastGameEnd = millis();
 }
  
 // main loop 
 void loop()
 {
+  long time = millis()-lastGameEnd;
   loopNumber++;
-  long time = millis();
+  
+  loopDelay = 150L - 0.1 * loopNumber;
   moveMonsters();
  
   int lcd_key = read_LCD_buttons();
@@ -359,7 +409,7 @@ void loop()
   }
   processPos();
   drawField();
-  if(millis()-time < 100) {
-    delay(100-millis()+time);
+  if(millis()-time-lastGameEnd < loopDelay) {
+    delay(loopDelay-millis()+time+lastGameEnd);
   }
 }
