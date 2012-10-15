@@ -23,3 +23,17 @@ Software
 --------
 
 * [LiquidCrystal](http://arduino.cc/en/Reference/LiquidCrystal) library
+
+Info
+----
+
+Some blips are remaining, but it's for the fun! If you are precise enough, you can cross a monster without him seeing you!
+
+Possible Extensions
+-------------------
+
+* Add LEDs that blink greed/red depending on events
+* Add IR to make the game multiplayer (maybe send monsters to other's screens?)
+* Add alcohol sensor to adapt the speed game depending on how drunk you are
+
+*Many thanks to [joseole](https://github.com/joseole) for his help*
