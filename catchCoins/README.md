@@ -11,6 +11,16 @@ Aim
 In this game, you have to catch the coins that appear randomly on the screen.
 Beware, some monsters might try to steal them from you!
 
+Controls
+--------
+
+* **SELECT** − show/hide scores
+* **UP** − go up
+* **DOWN** − go down
+* **LEFT** − go left
+* **RIGHT** − guess what…
+* **RESET** − well, that's pretty obvious
+
 Hardware
 --------
 
