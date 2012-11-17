@@ -64,6 +64,11 @@ Possible Extensions
 * Add IR to make the game multiplayer (maybe send monsters to other's screens?)
 * Add alcohol sensor to adapt the speed game depending on how drunk you are
 
+What else?
+----------
+
+This project was started in September 2012
+
 *Many thanks to [joseole](https://github.com/joseole) for his help*
 
 Project maintained by [K-Yo](http://digmore.net/)
