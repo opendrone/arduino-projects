@@ -16,6 +16,10 @@ int adc_key_in  = 0;
 #define btnSELECT 4
 #define btnNONE   5
 
+#define sndPIN    15
+
+#define ledPIN    16
+
 // Custom chars
 #define PLAYER_CHAR  0
 #define COIN_CHAR    1
@@ -52,6 +56,12 @@ boolean playerMeetMonster() {
 void processPos() {
   if (playerIsOnCoin()) {
     score++;
+    for(int i = 0;i<20;i++) {
+      digitalWrite(sndPIN,HIGH);
+      delay(4);
+      digitalWrite(sndPIN,LOW);
+      delay(4);
+    }
     generateNewCoin();
   }
   if (playerMeetMonster()) {
@@ -264,6 +274,42 @@ void displayStartSequence() {
 
 void endingSequence() {
   displayDeath();
+  
+  digitalWrite(ledPIN,HIGH);
+    for(int i = 0;i<40;i++) {
+      digitalWrite(sndPIN,HIGH);
+      delay(2);
+      digitalWrite(sndPIN,LOW);
+      delay(2);
+    }
+  digitalWrite(ledPIN,LOW);
+    delay(20);
+  digitalWrite(ledPIN,HIGH);
+    for(int i = 0;i<35;i++) {
+      digitalWrite(sndPIN,HIGH);
+      delay(4);
+      digitalWrite(sndPIN,LOW);
+      delay(4);
+    }
+  digitalWrite(ledPIN,LOW);
+    delay(20);
+  digitalWrite(ledPIN,HIGH);
+    for(int i = 0;i<30;i++) {
+      digitalWrite(sndPIN,HIGH);
+      delay(6);
+      digitalWrite(sndPIN,LOW);
+      delay(6);
+    }
+  digitalWrite(ledPIN,LOW);
+    delay(20);
+  digitalWrite(ledPIN,HIGH);
+    for(int i = 0;i<25;i++) {
+      digitalWrite(sndPIN,HIGH);
+      delay(8);
+      digitalWrite(sndPIN,LOW);
+      delay(8);
+    }
+  digitalWrite(ledPIN,LOW);
   showScores();
   displayEndSequence();
   reset();
@@ -347,6 +393,8 @@ void setup()
   // seeding the random function (for coin position)
   randomSeed(analogRead(2));
   // set initial values
+  pinMode(sndPIN, OUTPUT);
+  pinMode(ledPIN, OUTPUT);
   reset();
   initLcd();
   displayStartSequence();
