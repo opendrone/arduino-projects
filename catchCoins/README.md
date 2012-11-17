@@ -1,7 +1,7 @@
 Catch Coins!
 ============
 
-> Catch coins, but don't get caught!
+> *Catch coins, but don't get caught!*
 > 
 > -- <cite>A great game's introductory text</cite>
 
@@ -65,4 +65,5 @@ Possible Extensions
 * Add alcohol sensor to adapt the speed game depending on how drunk you are
 
 *Many thanks to [joseole](https://github.com/joseole) for his help*
+
 Project maintained by [K-Yo](http://digmore.net/)
