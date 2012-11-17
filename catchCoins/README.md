@@ -65,3 +65,4 @@ Possible Extensions
 * Add alcohol sensor to adapt the speed game depending on how drunk you are
 
 *Many thanks to [joseole](https://github.com/joseole) for his help*
+Project maintained by [K-Yo](http://digmore.net/)
