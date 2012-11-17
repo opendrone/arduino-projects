@@ -16,9 +16,13 @@ int adc_key_in  = 0;
 #define btnSELECT 4
 #define btnNONE   5
 
-#define sndPIN    15
-
-#define ledPIN    16
+// pin for the sound
+#define sndPIN        15
+// pin for the led
+#define ledPIN        13
+// pins for the tilt sensor
+#define tiltLeftPIN   16
+#define tiltRightPIN  19
 
 // Custom chars
 #define PLAYER_CHAR  0
@@ -28,6 +32,7 @@ int adc_key_in  = 0;
 #define MONSTER_CLOSED_CHAR 4
 
 // Possible directions
+// used for monsters moving & tilt
 #define DIR_RIGHT 0
 #define DIR_LEFT  1
 
@@ -84,6 +89,34 @@ void moveMonsters() {
         monsterPos[0] += 1;
       } else {
         monsterPos[0] -= 1;
+      }
+    }
+  }
+  if(loopNumber % 6 == 2 && readTilt() == DIR_RIGHT) {
+    for(int i = 0; i<2; i++) {
+      int* monsterPos = monsters[i];
+      if(monsterPos[0] == 15) {
+        monsterPos[2] = DIR_LEFT;
+        monsterPos[0] = 14;
+      } else if(monsterPos[0] == 0) {
+        monsterPos[2] = DIR_RIGHT;
+        monsterPos[0] = 0;
+      } else if(monsterPos[2] == DIR_LEFT) {
+        monsterPos[0] -= 1;
+      }
+    }
+  }
+  if(loopNumber % 6 == 4 && readTilt() == DIR_LEFT) {
+    for(int i = 0; i<2; i++) {
+      int* monsterPos = monsters[i];
+      if(monsterPos[0] == 15) {
+        monsterPos[2] = DIR_LEFT;
+        monsterPos[0] = 15;
+      } else if(monsterPos[0] == 0) {
+        monsterPos[2] = DIR_RIGHT;
+        monsterPos[0] = 1;
+      } else if(monsterPos[2] == DIR_RIGHT) {
+        monsterPos[0] += 1;
       }
     }
   }
@@ -395,6 +428,10 @@ void setup()
   // set initial values
   pinMode(sndPIN, OUTPUT);
   pinMode(ledPIN, OUTPUT);
+  pinMode(tiltLeftPIN,OUTPUT);
+  pinMode(tiltRightPIN,INPUT);
+  digitalWrite(tiltLeftPIN,LOW);
+  digitalWrite(tiltRightPIN,HIGH);
   reset();
   initLcd();
   displayStartSequence();
@@ -402,16 +439,25 @@ void setup()
   lastGameEnd = millis();
 }
  
+ int readTilt() {
+   if(digitalRead(tiltRightPIN) == HIGH) {
+     return DIR_LEFT;
+   } else {
+     return DIR_RIGHT;
+   }
+ }
 // main loop 
 void loop()
 {
+  
   long time = millis()-lastGameEnd;
   loopNumber++;
   
   // formula that speeds up with time & each time you catch a coin
   loopDelay = min(max(0,(110L - 0.1 * loopNumber + 130L - score)/2),150L);
-  moveMonsters();
- 
+  
+  moveMonsters(); 
+  
   int lcd_key = read_LCD_buttons();
   switch (lcd_key)
   {
